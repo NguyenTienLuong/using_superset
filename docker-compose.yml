@@ -70,6 +70,28 @@ services:
       - drupal_db_data:/var/lib/mysql
 
     restart: unless-stopped
+  superset:
+    build: ./superset
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      - SUPERSET_SECRET_KEY=your-secret-key-change-me
+      - DATABASE_DIALECT=postgresql
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=ai_translator
+      - DATABASE_USER=admin
+      - DATABASE_PASSWORD=password123
+      - SUPERSET_PUBLIC_ROLE_LIKE_GAMMA=True
+      - DASHBOARD_RBAC=True
+    volumes:
+      - ./superset_config/superset_config.py:/app/pythonpath/superset_config.py
+      - ./superset_config/auto_import.py:/app/pythonpath/auto_import.py
+      - ./superset_home:/app/superset_home
+      - ./superset_config/dashboard_export_20260514T151310.zip:/app/superset_home/dashboard_export_20260514T151310.zip
+    depends_on:
+      - postgres
   drupal:
     image: drupal:11
 
