@@ -68,7 +68,6 @@ services:
 
     volumes:
       - drupal_db_data:/var/lib/mysql
-      - ./drupal_db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     restart: unless-stopped
   superset:
     build: ./superset
@@ -96,7 +95,8 @@ services:
       bash -c "
       superset db upgrade &&
       superset init &&
-      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@admin.com --password password123 &&
+      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@admin.com --password password123 || \
+      flask fab reset-password --username admin --password password123 &&
       python /app/pythonpath/auto_import.py &
       superset run -p 8088 --host 0.0.0.0 --with-threads --reload --debugger
       "
@@ -114,8 +114,9 @@ services:
     volumes:
       - ./drupal/modules:/var/www/html/modules
       - ./drupal/themes:/var/www/html/themes
-      - ./drupal/settings:/var/www/html/sites/default # mount settings.php
+
     restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
