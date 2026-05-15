@@ -68,7 +68,7 @@ services:
 
     volumes:
       - drupal_db_data:/var/lib/mysql
-
+      - ./drupal_db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     restart: unless-stopped
   superset:
     build: ./superset
@@ -92,6 +92,14 @@ services:
       - ./superset_config/dashboard_export_20260514T151310.zip:/app/superset_home/dashboard_export_20260514T151310.zip
     depends_on:
       - postgres
+    command: >
+      bash -c "
+      superset db upgrade &&
+      superset init &&
+      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@admin.com --password password123 &&
+      python /app/pythonpath/auto_import.py &
+      superset run -p 8088 --host 0.0.0.0 --with-threads --reload --debugger
+      "
   drupal:
     image: drupal:11
 
@@ -106,7 +114,7 @@ services:
     volumes:
       - ./drupal/modules:/var/www/html/modules
       - ./drupal/themes:/var/www/html/themes
-
+      - ./drupal/settings:/var/www/html/sites/default # mount settings.php
     restart: unless-stopped
 volumes:
   postgres_data:
